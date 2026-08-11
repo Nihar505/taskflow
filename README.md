@@ -3,7 +3,7 @@
 TaskFlow is a simple command-line task and habit tracker built in Python.
 
 > **Status:** Under Active Development 🚧  
-> Task adding feature with local JSON persistence is now available.
+> Task adding and task completion features with local JSON persistence are now available.
 
 ## Overview
 
@@ -11,10 +11,10 @@ TaskFlow is designed to help users track daily tasks and habits efficiently righ
 
 ### Supported Features
 - ➕ **Add Tasks:** Add new tasks via command line or interactive prompt with local JSON persistence.
+- ✅ **Complete Tasks:** Mark tasks as completed by ID.
 
 ### Planned Features
 - 📋 List active tasks
-- ✅ Complete tasks
 - 🗑️ Delete tasks
 - 📅 Assign due dates
 - 📊 View basic stats and progress
@@ -47,6 +47,24 @@ Alternatively, run `add` without title arguments to be prompted interactively:
 
 ```bash
 python3 main.py add
+```
+
+#### Completing a Task
+Pass the task ID directly on the command line:
+
+```bash
+python3 main.py complete 1
+```
+
+Output:
+```text
+Task 1 ('Buy groceries') marked as completed!
+```
+
+Alternatively, run `complete` without arguments to be prompted for the task ID interactively:
+
+```bash
+python3 main.py complete
 ```
 
 ### Data Storage

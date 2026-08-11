@@ -56,11 +56,45 @@ def print_help():
     print("Available Commands:")
     print("  help        Display this help message")
     print("  add         Add a new task (e.g. python main.py add \"Buy groceries\")")
+    print("  complete    Mark a task as completed (e.g. python main.py complete 1)")
     print("  list        (Coming soon) List all tasks")
-    print("  complete    (Coming soon) Mark a task as completed")
     print("  delete      (Coming soon) Delete a task")
     print("  stats       (Coming soon) View basic statistics")
     print()
+
+
+def complete_task(task_id_str=None):
+    if not task_id_str:
+        task_id_str = input("Enter task ID to mark as completed: ").strip()
+
+    if not task_id_str:
+        print("Error: Task ID is required.")
+        return
+
+    try:
+        task_id = int(task_id_str)
+    except ValueError:
+        print(f"Error: Invalid task ID '{task_id_str}'. Task ID must be an integer.")
+        return
+
+    tasks = load_tasks()
+    found_task = None
+    for task in tasks:
+        if task.get("id") == task_id:
+            found_task = task
+            break
+
+    if not found_task:
+        print(f"Error: Task with ID {task_id} was not found.")
+        return
+
+    if found_task.get("completed"):
+        print(f"Task {task_id} ('{found_task.get('title')}') is already marked as completed.")
+        return
+
+    found_task["completed"] = True
+    save_tasks(tasks)
+    print(f"Task {task_id} ('{found_task.get('title')}') marked as completed!")
 
 
 def main():
@@ -73,6 +107,9 @@ def main():
         elif command == "add":
             title = " ".join(sys.argv[2:]).strip() if len(sys.argv) > 2 else None
             add_task(title)
+        elif command == "complete":
+            task_id_arg = sys.argv[2] if len(sys.argv) > 2 else None
+            complete_task(task_id_arg)
         else:
             print(f"Command '{sys.argv[1]}' is not recognized.")
             print()

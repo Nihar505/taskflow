@@ -46,3 +46,7 @@ venv.bak/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# TaskFlow data storage
+tasks.json
+

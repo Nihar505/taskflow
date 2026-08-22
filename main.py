@@ -1,8 +1,10 @@
 import json
 import os
 import sys
+from datetime import datetime
 
 TASKS_FILE = "tasks.json"
+DATE_FORMAT = "%Y-%m-%d"
 
 
 def load_tasks(filepath=TASKS_FILE):
@@ -20,7 +22,23 @@ def save_tasks(tasks, filepath=TASKS_FILE):
         json.dump(tasks, f, indent=2)
 
 
-def add_task(title=None):
+def parse_due_date(date_str):
+    """Parse a YYYY-MM-DD string and return it if valid, else raise ValueError."""
+    try:
+        parsed = datetime.strptime(date_str.strip(), DATE_FORMAT)
+    except ValueError:
+        raise ValueError(
+            f"Invalid date '{date_str}'. Expected format: YYYY-MM-DD (e.g. 2026-09-30)."
+        )
+    # Basic sanity check: year must be reasonable
+    if parsed.year < 2000 or parsed.year > 2100:
+        raise ValueError(
+            f"Date '{date_str}' looks unreasonable. Year must be between 2000 and 2100."
+        )
+    return parsed.strftime(DATE_FORMAT)
+
+
+def add_task(title=None, due_date_str=None):
     if not title:
         title = input("Enter task title: ").strip()
 
@@ -28,18 +46,56 @@ def add_task(title=None):
         print("Error: Task title cannot be empty.")
         return
 
+    # Handle due date
+    due_date = None
+    if due_date_str is None:
+        # Not passed via CLI — ask interactively (optional)
+        raw = input("Enter due date (YYYY-MM-DD) or press Enter to skip: ").strip()
+        if raw:
+            try:
+                due_date = parse_due_date(raw)
+            except ValueError as e:
+                print(f"Error: {e}")
+                return
+    elif due_date_str:
+        try:
+            due_date = parse_due_date(due_date_str)
+        except ValueError as e:
+            print(f"Error: {e}")
+            return
+
     tasks = load_tasks()
     next_id = max([t.get("id", 0) for t in tasks], default=0) + 1
 
     new_task = {
         "id": next_id,
         "title": title,
-        "completed": False
+        "completed": False,
+        "due_date": due_date,  # None if not provided
     }
 
     tasks.append(new_task)
     save_tasks(tasks)
-    print(f"Task added successfully! (ID: {next_id}) - '{title}'")
+
+    due_display = f" (due: {due_date})" if due_date else ""
+    print(f"Task added successfully! (ID: {next_id}) - '{title}'{due_display}")
+
+
+def list_tasks():
+    tasks = load_tasks()
+
+    if not tasks:
+        print("No tasks found. Add one with: python main.py add \"Your task\"")
+        return
+
+    print(f"{'ID':<5} {'Status':<12} {'Due Date':<14} Title")
+    print("-" * 60)
+
+    for task in tasks:
+        status = "[done]" if task.get("completed") else "[ ]  "
+        due = task.get("due_date") or "-"
+        title = task.get("title", "")
+        print(f"{task.get('id'):<5} {status:<12} {due:<14} {title}")
 
 
 def print_welcome():
@@ -55,10 +111,13 @@ def print_help():
     print()
     print("Available Commands:")
     print("  help        Display this help message")
-    print("  add         Add a new task (e.g. python main.py add \"Buy groceries\")")
+    print("  add         Add a new task")
+    print("                python main.py add \"Buy groceries\"")
+    print("                python main.py add \"Submit report\" --due 2026-09-30")
+    print("  list        List all tasks")
+    print("                python main.py list")
     print("  complete    Mark a task as completed (e.g. python main.py complete 1)")
     print("  delete      Delete a task (e.g. python main.py delete 1)")
-    print("  list        (Coming soon) List all tasks")
     print("  stats       (Coming soon) View basic statistics")
     print()
 
@@ -119,7 +178,7 @@ def delete_task(task_id_str=None):
             break
 
     if not found_task:
-        print(f"Error: Task with ID {task_id} was not found.")
+        print(f"Error: Task with ID {task_id} was not found.") 
         return
 
     tasks = [t for t in tasks if t.get("id") != task_id]
@@ -135,8 +194,24 @@ def main():
         if command in ("--help", "-h", "help"):
             print_help()
         elif command == "add":
-            title = " ".join(sys.argv[2:]).strip() if len(sys.argv) > 2 else None
-            add_task(title)
+            # Parse optional --due flag anywhere after 'add'
+            args = sys.argv[2:]
+            due_date_str = None
+            title_parts = []
+
+            i = 0
+            while i < len(args):
+                if args[i] == "--due" and i + 1 < len(args):
+                    due_date_str = args[i + 1]
+                    i += 2
+                else:
+                    title_parts.append(args[i])
+                    i += 1
+
+            title = " ".join(title_parts).strip() if title_parts else None
+            add_task(title, due_date_str)
+        elif command == "list":
+            list_tasks()
         elif command == "complete":
             task_id_arg = sys.argv[2] if len(sys.argv) > 2 else None
             complete_task(task_id_arg)

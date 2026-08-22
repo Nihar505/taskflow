@@ -3,7 +3,7 @@
 TaskFlow is a simple command-line task and habit tracker built in Python.
 
 > **Status:** Under Active Development 🚧  
-> Task adding, completion, deletion, listing, and **due dates** are now available.
+> Task adding, completion, deletion, listing, due dates, and **basic statistics** are now available.
 
 ## Overview
 
@@ -15,9 +15,10 @@ TaskFlow is designed to help users track daily tasks and habits efficiently righ
 - 📋 **List Tasks:** View all tasks in a tabular format, including their due dates and status.
 - ✅ **Complete Tasks:** Mark tasks as completed by ID.
 - 🗑️ **Delete Tasks:** Remove tasks by ID.
+- 📊 **Statistics:** View total, completed, incomplete, completion %, and overdue task counts.
 
 ### Planned Features
-- 📊 View basic stats and progress
+- 🔍 Filter/sort tasks by status or due date
 
 ## Getting Started
 
@@ -132,6 +133,26 @@ Run without arguments to be prompted interactively:
 ```bash
 python3 main.py delete
 ```
+
+---
+
+#### Viewing Statistics
+
+```bash
+python3 main.py stats
+```
+
+Output:
+```text
+--- Task Statistics ---
+  Total tasks      : 4
+  Completed        : 2
+  Incomplete       : 2
+  Completion       : 50.0%
+  Overdue          : 1
+```
+
+- **Overdue** counts only incomplete tasks whose due date is before today. Tasks without a due date are never counted as overdue.
 
 ---
 

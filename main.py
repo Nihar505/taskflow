@@ -98,6 +98,35 @@ def list_tasks():
         print(f"{task.get('id'):<5} {status:<12} {due:<14} {title}")
 
 
+def show_stats():
+    tasks = load_tasks()
+    total = len(tasks)
+
+    if total == 0:
+        print("No tasks found. Add one with: python main.py add \"Your task\"")
+        return
+
+    completed = sum(1 for t in tasks if t.get("completed"))
+    incomplete = total - completed
+    pct = (completed / total) * 100
+
+    # Overdue: incomplete tasks whose due_date is before today
+    today_str = datetime.now().strftime(DATE_FORMAT)
+    overdue = sum(
+        1 for t in tasks
+        if not t.get("completed")
+        and t.get("due_date")
+        and t["due_date"] < today_str  # lexicographic comparison works for YYYY-MM-DD
+    )
+
+    print("--- Task Statistics ---")
+    print(f"  Total tasks      : {total}")
+    print(f"  Completed        : {completed}")
+    print(f"  Incomplete       : {incomplete}")
+    print(f"  Completion       : {pct:.1f}%")
+    print(f"  Overdue          : {overdue}")
+
+
 def print_welcome():
     print("==========================================")
     print("         Welcome to TaskFlow!             ")
@@ -118,7 +147,7 @@ def print_help():
     print("                python main.py list")
     print("  complete    Mark a task as completed (e.g. python main.py complete 1)")
     print("  delete      Delete a task (e.g. python main.py delete 1)")
-    print("  stats       (Coming soon) View basic statistics")
+    print("  stats       Show task statistics (e.g. python main.py stats)")
     print()
 
 
@@ -215,6 +244,8 @@ def main():
         elif command == "complete":
             task_id_arg = sys.argv[2] if len(sys.argv) > 2 else None
             complete_task(task_id_arg)
+        elif command == "stats":
+            show_stats()
         elif command == "delete":
             task_id_arg = sys.argv[2] if len(sys.argv) > 2 else None
             delete_task(task_id_arg)
